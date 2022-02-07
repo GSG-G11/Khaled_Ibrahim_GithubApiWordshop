@@ -13,27 +13,26 @@ const userIssues = document.querySelector('#github-repo-open-issues');
 const userWatchers = document.querySelector('#github-repo-watchers');
 const userRepoContributors = document.querySelector('#github-repo-contributors');
 
-function getData (url, callback) {
-    
+function getData(url, callback) {
     const xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
+    xhr.onreadystatechange = function () {
         if (xhr.readyState == 4 && xhr.status == 200) {
             const response = JSON.parse(xhr.responseText);
-            callback(response );
-          }
-    } 
+            callback(response);
+        }
+    }
     xhr.open("GET", url, true);
     xhr.send();
 }
 
-function getUser (response) {
+function getUser(response) {
     userName.textContent = response.login;
     userLink.href = response.url;
     userAvatar.src = response.avatar_url;
     userReposNumber.textContent = response.public_repos;
 }
 
-function getRepos (response) {
+function getRepos(response) {
     const topRepo = response[1];
     userTatalStarts.textContent = topRepo.stargazers_count;
     userRepoLink.href = topRepo.html_url;
@@ -41,18 +40,23 @@ function getRepos (response) {
     userRepoCreated.textContent = topRepo.created_at;
     userIssues.textContent = topRepo.open_issues;
     userWatchers.textContent = topRepo.watchers;
-    getData(topRepo.contributors_url, getContributors)  
-    getData(topRepo.languages_url, getLanguages);  
+    getData(topRepo.contributors_url, getContributors)
+    getLanguages(response)
 }
 
-function getContributors (response) {
+function getContributors(response) {
     response.forEach(element => {
-    userRepoContributors.textContent += element.login + ' ';
+        userRepoContributors.textContent += element.login + ' ';
     });
 }
-function getLanguages (response) {
-    userLanguage.textContent = Object.keys(response).join(' ');
+function getLanguages(response) {
+    let totalLangs = {};
+    function addRepoLangsIntoTotalLangs(langsObj) {
+        totalLangs = { ...totalLangs, ...langsObj }
+        userLanguage.textContent = Object.keys(totalLangs).join(' ');
+    }
+    response.forEach(repo => getData(repo.languages_url, addRepoLangsIntoTotalLangs))
 }
 
-getData('https://api.github.com/users/ibrahim-jarada',getUser);
-getData('https://api.github.com/users/Ibrahim-Jarada/repos',getRepos);
+getData('https://api.github.com/users/ibrahim-jarada', getUser);
+getData('https://api.github.com/users/Ibrahim-Jarada/repos', getRepos);
